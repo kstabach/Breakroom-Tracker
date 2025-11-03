@@ -5,7 +5,7 @@
 // ───────────────────────────────────────────────
 
 /* ────────────── CONFIG ────────────── */
-const VERSION = 'v1.5.2';
+const VERSION = 'v1.5.3';
 const SPREADSHEET_ID = '1XBILXBgUXwnP6lZw9qRsgyRGO07XFl7buri5Tw9E6Tw';
 const TRACKER_TAB = 'BreakroomTracker';
 const LISTS_TAB = 'Lists';
