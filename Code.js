@@ -223,6 +223,50 @@ function onOpen(){
   
   logEvent_('onOpen','Loaded',VERSION);
 }
+/* ────────────── QUICK ADD PANEL LOGIC ────────────── */
+function getDropdownData() {
+  const listsSheet = ss.getSheetByName(LISTS_TAB);
+  if (!listsSheet) throw new Error("Lists sheet is missing.");
+  
+  // Column P has Agency List, Column I has Status List (from the Lists.csv snippet)
+  const agencies = listsSheet.getRange('P2:P' + listsSheet.getLastRow()).getValues().flat().filter(String);
+  const statuses = listsSheet.getRange('I2:I' + listsSheet.getLastRow()).getValues().flat().filter(String);
+
+  return { agencies: agencies, statuses: statuses };
+}
+
+function saveQuickEntry(formData) {
+  const trackerSheet = ss.getSheetByName(TRACKER_TAB);
+  if (!trackerSheet) throw new Error("Tracker sheet is missing.");
+  
+  const now = Utilities.formatDate(new Date(), Session.getScriptTimeZone(),'MM/dd/yy');
+  const user = Session.getActiveUser().getEmail();
+  
+  const newRow = [
+    now, // A: Date (set to today)
+    formData.agency, // B: Agency (AOR)
+    formData.client, // C: Client / Brand
+    // Remaining columns are left blank or set to default
+    '', '', '', '', // D, E, F, G (ARM, Manager, Specialist, Vertical)
+    'Planned', // H: Status (Set to 'Planned' by default)
+    'FALSE', // I: Prep Pack Sent?
+    '', '', '', '', '', '', '', '', // J-Q (Dates/Owners)
+    '', // R: Potential Revenue Impact ($)
+    '', '', '', // S, T, U (What Resonated, Objections, Key Insight)
+    'Neutral – Learning', // V: Agency Sentiment (Default)
+    'Neutral – Learning', // W: Client Sentiment (Default)
+    '2', // X: Agency Score (Default)
+    '2', // Y: Client Score (Default)
+    formData.notes, // Z: Notes / Comments
+    user, // AA: Last Updated By
+    now, // AB: Last Updated Date
+    'FALSE', // AC: Verified by Manager
+    'FALSE' // AD: Archived
+  ];
+  
+  trackerSheet.appendRow(newRow);
+  logEvent_('QuickAdd', 'Success', `New entry for ${formData.client} added.`);
+}
 // ────────────── PUBLIC ENTRYPOINTS (for API Executable) ──────────────
 function runFullAudit() {
   return runFullAudit_();

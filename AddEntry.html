@@ -1,10 +1,102 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <base target="_top">
-  </head>
-  <body>
-    <h1>Breakroom Quick Add</h1>
-    <p>This is the quick entry form. We will build the final UI here.</p>
-  </body>
+<head>
+  <base target="_top">
+  <style>
+    body { font-family: Roboto, Arial, sans-serif; padding: 15px; background-color: #f8f9fa; }
+    h3 { color: #0B6477; margin-top: 0; }
+    .form-group { margin-bottom: 12px; }
+    label { display: block; font-weight: 500; margin-bottom: 4px; color: #3c4043; }
+    input[type="text"], textarea, select {
+      width: 100%; padding: 8px; border: 1px solid #dadce0; border-radius: 4px; box-sizing: border-box;
+      font-size: 14px;
+    }
+    textarea { resize: vertical; height: 70px; }
+    .btn-submit {
+      background-color: #1a73e8; color: white; padding: 10px 15px; border: none; border-radius: 4px;
+      cursor: pointer; font-size: 14px; font-weight: 500; margin-top: 10px;
+    }
+    .btn-submit:hover { background-color: #1764cc; }
+  </style>
+</head>
+<body>
+  <h3>📝 Breakroom Quick Entry</h3>
+  <div id="loading" style="display: none; color: #1a73e8;">Processing...</div>
+  <form id="entryForm">
+    <div class="form-group">
+      <label for="agency">Agency (AOR)</label>
+      <select id="agency" name="agency" required>
+        <option value="">-- Select Agency --</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="client">Client / Brand</label>
+      <input type="text" id="client" name="client" required>
+    </div>
+    <div class="form-group">
+      <label for="status">Status</label>
+      <select id="status" name="status" required>
+        <option value="">-- Select Status --</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="notes">Notes / Next Steps</label>
+      <textarea id="notes" name="notes"></textarea>
+    </div>
+    <button type="submit" class="btn-submit">Add Entry to Tracker</button>
+  </form>
+
+  <script>
+    // Runs when the modal opens to fetch dropdown data
+    google.script.run.withSuccessHandler(loadForm).getDropdownData();
+
+    function loadForm(data) {
+      const agencySelect = document.getElementById('agency');
+      const statusSelect = document.getElementById('status');
+
+      data.agencies.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item;
+        option.textContent = item;
+        agencySelect.appendChild(option);
+      });
+
+      data.statuses.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item;
+        option.textContent = item;
+        statusSelect.appendChild(option);
+      });
+    }
+
+    document.getElementById('entryForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      document.getElementById('loading').style.display = 'block';
+
+      const formData = {
+        agency: document.getElementById('agency').value,
+        client: document.getElementById('client').value,
+        status: document.getElementById('status').value,
+        notes: document.getElementById('notes').value
+      };
+
+      // Calls the server-side function to save data
+      google.script.run
+        .withSuccessHandler(onSuccess)
+        .withFailureHandler(onFailure)
+        .saveQuickEntry(formData);
+    });
+
+    function onSuccess() {
+      document.getElementById('loading').style.display = 'none';
+      alert('Entry saved successfully!');
+      google.script.host.close();
+    }
+
+    function onFailure(error) {
+      document.getElementById('loading').style.display = 'none';
+      alert('Error saving entry: ' + error.message);
+    }
+  </script>
+</body>
 </html>
