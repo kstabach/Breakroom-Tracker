@@ -1,7 +1,7 @@
 // ───────────────────────────────────────────────
-//  Breakroom Tracker – Apps Script  (v1.5.2 Stable Freeze + Doc Sync)
+//  Breakroom Tracker – Apps Script  (v1.5.3 Stable Freeze + Doc Sync)
 //  Owner: kenneth.stabach@ziprecruiter.com
-//  Last Updated: 11/02/2025
+//  Last Updated: 11/03/2025
 // ───────────────────────────────────────────────
 
 /* ────────────── CONFIG ────────────── */
@@ -21,32 +21,38 @@ const BACKUP_PARENT_FOLDER_NAME = 'Breakroom_Tracker';
 const BACKUP_ARCHIVE_FOLDER_NAME = 'Archive';
 
 /* ────────────── UTILITIES ────────────── */
-function ss_(){ return SpreadsheetApp.openById(SPREADSHEET_ID); }
-function ui_(){ return SpreadsheetApp.getUi(); }
+// Global constants for performance: Open the spreadsheet and UI only ONCE.
+const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+const ui = SpreadsheetApp.getUi();
+
 function props_(){ return PropertiesService.getDocumentProperties(); }
 function sprops_(){ return PropertiesService.getScriptProperties(); }
 function safeToast_(msg){ try{ SpreadsheetApp.getActive().toast(msg,'Breakroom Tracker',3);}catch(e){} }
-function safeAlert_(msg){ try{ ui_().alert(msg);}catch(e){} }
+function safeAlert_(msg){ try{ ui.alert(msg);}catch(e){} }
 function isAdmin_(){ return ADMIN_EMAILS.includes((Session.getActiveUser().getEmail()||'').toLowerCase()); }
 
 /* ────────────── LOGGING ────────────── */
+// This function now returns the log sheet for efficiency.
 function ensureDevLog_(){
-  const ss = ss_();
   let log = ss.getSheetByName('Dev_Log');
-  if(!log){ log = ss.insertSheet('Dev_Log'); log.appendRow(['Timestamp','User','Action','Status','Message']); }
+  if(!log){ 
+    log = ss.insertSheet('Dev_Log'); 
+    log.appendRow(['Timestamp','User','Action','Status','Message']); 
+  }
   return log;
 }
+
+// A single, fast log function.
 function logEvent_(a,b,c){
-  const ss = ss_(); ensureDevLog_();
-  const s = ss.getSheetByName('Dev_Log');
+  const logSheet = ensureDevLog_(); // Gets the sheet object directly
   const ts = Utilities.formatDate(new Date(), Session.getScriptTimeZone(),'MM/dd/yy HH:mm:ss');
   const u = Session.getActiveUser().getEmail()||'user';
-  s.appendRow([ts,u,a,b,c||'']);
+  logSheet.appendRow([ts,u,a,b,c||'']);
 }
 
 /* ────────────── CHANGELOG ────────────── */
 function ensureChangelog_(){
-  const ss=ss_(); let sh=ss.getSheetByName('Changelog');
+  let sh=ss.getSheetByName('Changelog'); // Uses global 'ss'
   if(!sh){ sh=ss.insertSheet('Changelog'); sh.appendRow(['Version','Date','User','Notes']); }
   return sh;
 }
@@ -55,7 +61,7 @@ function openChangelog_(){
   const ts=Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'MM/dd/yy HH:mm');
   const u=Session.getActiveUser().getEmail()||'user';
   sh.appendRow([VERSION,ts,u,'📜 Auto-entry']);
-  ss_().setActiveSheet(sh);
+  ss.setActiveSheet(sh); // Uses global 'ss'
   safeToast_('📜 Changelog updated');
 }
 
@@ -70,7 +76,7 @@ function findOrCreateArchiveFolder_(){
 }
 function createSheetBackup_(){
   try{
-    const ss=ss_(); const f=DriveApp.getFileById(ss.getId());
+    const f=DriveApp.getFileById(ss.getId()); // Uses global 'ss'
     const ts=Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'MM-dd-yyyy_HHmm');
     const name=`BreakroomTracker_${VERSION}_Backup_${ts}`;
     const copy=f.makeCopy(name); const folder=findOrCreateArchiveFolder_();
@@ -95,8 +101,8 @@ function getLastBackupTime_(){ const iso=sprops_().getProperty('LAST_BACKUP_RUN'
 
 /* ────────────── HEALTH + VERIFY ────────────── */
 function systemHealth_(){
-  const ss=ss_(); const log=ss.getSheetByName('Dev_Log');
-  const loc=ss.getSpreadsheetLocale()==='en_US';
+  const log=ss.getSheetByName('Dev_Log'); // Uses global 'ss'
+  const loc=ss.getSpreadsheetLocale()==='en_US'; // Uses global 'ss'
   const t=ScriptApp.getProjectTriggers().some(x=>x.getHandlerFunction()==='buildDashboard');
   const ok=!!(log&&loc);
   const folder=findOrCreateArchiveFolder_(); const files=folder.getFiles(); let count=0; while(files.hasNext()){files.next();count++;}
@@ -111,10 +117,14 @@ function verifyBundleStructure_(){
 
 /* ────────────── DASHBOARD ────────────── */
 function buildDashboard(){
-  const ss=ss_(); const dash=ss.getSheetByName(DASH_TAB);
-  dash.clearContents(); dash.setColumnWidths(1,3,200);
-  const health=systemHealth_(); const ts=Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'MM/dd/yy HH:mm');
-  const u=Session.getActiveUser().getEmail()||'user';
+  const dash = ss.getSheetByName(DASH_TAB); // Uses global 'ss'
+  dash.clearContents(); 
+  dash.setColumnWidths(1,3,200);
+  
+  const health = systemHealth_(); 
+  const ts = Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'MM/dd/yy HH:mm');
+  const u = Session.getActiveUser().getEmail()||'user';
+  
   dash.getRange('A1:B1').setValues([['📊 Metric','Value']]).setBackground('#0B6477').setFontColor('#fff').setFontWeight('bold');
   dash.getRange('A2:B7').setValues([
     ['🟠 Active Records',0],
@@ -124,16 +134,27 @@ function buildDashboard(){
     ['🧑‍💼 Avg Client Sentiment',0],
     ['💰 Total Potential Revenue','$0']
   ]);
-  const audit=[]; try{verifyBundleStructure_();audit.push('☑️ Drive: OK');}catch(e){audit.push('⚠️ Drive');}
-  audit.push(health.ok?'💻 System: OK':'⚠️ System');
-  try{createSheetBackup_();audit.push('📦 Backup OK');}catch(e){audit.push('⚠️ Backup');}
-  const allOK=audit.every(x=>x.includes('OK'));
-  const color=allOK?'#D1F2E4':audit.some(x=>x.includes('⚠️'))?'#FFF3CD':'#F8D7DA';
-  const emoji=allOK?'🟢':audit.some(x=>x.includes('⚠️'))?'🟡':'🔴';
+  
+  const audit=[]; 
+  try{ verifyBundleStructure_(); audit.push('☑️ Drive: OK'); } catch(e){ audit.push('⚠️ Drive'); }
+  audit.push(health.ok ? '💻 System: OK' : '⚠️ System');
+  
+  // CRITICAL FIX: Backup call has been removed for performance.
+  // We will add a "Backup Status" check instead.
+  const lastBackup = getLastBackupTime_();
+  audit.push(`📦 Backup: ${lastBackup}`);
+
+  const allOK = audit.every(x=>x.includes('OK'));
+  const color = allOK ? '#D1F2E4' : audit.some(x=>x.includes('⚠️')) ? '#FFF3CD' : '#F8D7DA';
+  const emoji = allOK ? '🟢' : audit.some(x=>x.includes('⚠️')) ? '🟡' : '🔴';
+  
   dash.getRange('A9:C9').merge().setValue(`${emoji} ${audit.join(' | ')}`).setFontWeight('bold').setBackground(color).setWrap(true);
-  const footer=`Breakroom Tracker ${VERSION}\n${ts} | ${u}\n${emoji} ${allOK?'System Healthy':'Review Needed'} | Auto-Refresh: ${health.autoRefreshOn?'ON':'OFF'}`;
+  
+  const footer = `Breakroom Tracker ${VERSION}\n${ts} | ${u}\n${emoji} ${allOK?'System Healthy':'Review Needed'} | Auto-Refresh: ${health.autoRefreshOn?'ON':'OFF'}`;
   dash.getRange('A11:C12').merge().setValue(footer).setFontSize(9).setBackground('#F8F9FA').setWrap(true);
-  safeToast_('✅ Dashboard refreshed'); logEvent_('buildDashboard','Success','Dashboard rendered');
+  
+  safeToast_('✅ Dashboard refreshed'); 
+  logEvent_('buildDashboard','Success','Dashboard rendered');
 }
 
 /* ────────────── FULL AUDIT ────────────── */
@@ -180,9 +201,11 @@ function freezeAndBundle_(){
   const user=Session.getActiveUser().getEmail()||'user'; const res=[];
   try{
     createSheetBackup_(); res.push('📦 Backup');
-    ensureChangelog_(); const ss=ss_(); const sh=ss.getSheetByName('Changelog');
+    ensureChangelog_(); 
+    const sh=ss.getSheetByName('Changelog'); // Uses global 'ss'
     sh.appendRow([v,ts,user,'🔒 Freeze & Bundle']); res.push('📜 Changelog');
-    const f=DriveApp.getFileById(ss.getId()); const name=`BreakroomTracker_${v}_Snapshot_${Utilities.formatDate(start,Session.getScriptTimeZone(),'MM-dd-yyyy_HHmm')}.zip`;
+    const f=DriveApp.getFileById(ss.getId()); // Uses global 'ss'
+    const name=`BreakroomTracker_${v}_Snapshot_${Utilities.formatDate(start,Session.getScriptTimeZone(),'MM-dd-yyyy_HHmm')}.zip`;
     const tmp=DriveApp.createFile('readme.txt',`Breakroom Tracker ${v}\nExported ${ts}\nBy ${user}`); const blob=Utilities.zip([f.getBlob(),tmp.getBlob()],name);
     const folder=findOrCreateArchiveFolder_(); folder.createFile(blob); res.push('🗜 ZIP');
     runFullAudit_(); res.push('🩺 Audit'); syncScriptToDoc_(); res.push('🧾 Script Sync');
@@ -202,10 +225,9 @@ function validateScriptVersion_(){
 
 /* ────────────── MENU & SECURITY ────────────── */
 function onOpen(){
-  const ui=ui_();
-
+  
   // 1. Build the menu
-  ui.createMenu('📊 Breakroom Tools')
+  ui.createMenu('📊 Breakroom Tools') // Uses global 'ui'
     .addItem('🔁 Refresh Dashboard','buildDashboard')
     .addSeparator()
     .addItem('🩺 Run Full Audit','runFullAudit_')
@@ -216,42 +238,41 @@ function onOpen(){
     .addSeparator()
     .addItem('🧾 Validate Script Version','validateScriptVersion_')
     .addToUi();
-
+  
   // 2. Apply Sheet Protections
   try {
-    const ss = ss_();
-    const allSheets = ss.getSheets();
+    const allSheets = ss.getSheets(); // Uses global 'ss'
     const currentUser = Session.getActiveUser().getEmail();
-
+    
     // These are the tabs that NON-ADMINS *can* edit.
     // We will leave the main data tab open.
     const userEditableTabs = [TRACKER_TAB]; 
 
     allSheets.forEach(sheet => {
       const sheetName = sheet.getName();
-
+      
       // Check if this is a system tab (i.e., NOT a user-editable tab)
       if (userEditableTabs.indexOf(sheetName) === -1) {
         const protection = sheet.getProtection(SpreadsheetApp.ProtectionType.SHEET);
-
+        
         // Add all admins as editors
         protection.addEditors(ADMIN_EMAILS);
-
+        
         // Ensure domain editing is off
         if (protection.canDomainEdit()) {
           protection.setDomainEdit(false);
         }
-
+        
         // If the current user is NOT an admin, remove them from this tab
         if (!isAdmin_()) {
           protection.removeEditor(currentUser);
         }
-
+        
         protection.setDescription(`Admin-Only Tab (${sheetName})`);
         protection.setWarningOnly(false); // Use hard protection
       }
     });
-
+    
     logEvent_('onOpen_Security', 'Success', 'Sheet protections updated');
 
   } catch (e) {
@@ -262,7 +283,6 @@ function onOpen(){
   validateScriptVersion_(); 
   logEvent_('onOpen','Loaded',VERSION);
 }
-
 // ────────────── PUBLIC ENTRYPOINTS (for API Executable) ──────────────
 function runFullAudit() {
   return runFullAudit_();
