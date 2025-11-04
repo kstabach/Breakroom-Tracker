@@ -27,7 +27,7 @@ const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 function props_(){ return PropertiesService.getDocumentProperties(); }
 function sprops_(){ return PropertiesService.getScriptProperties(); }
 function safeToast_(msg){ try{ SpreadsheetApp.getActive().toast(msg,'Breakroom Tracker',3);}catch(e){} }
-function safeAlert_(msg){ try{ SpreadsheetApp.getUi().alert(msg);}catch(e){} } // UI is called here directly
+function safeAlert_(msg){ try{ SpreadsheetApp.getUi().alert(msg);}catch(e){} } 
 function isAdmin_(){ return ADMIN_EMAILS.includes((Session.getActiveUser().getEmail()||'').toLowerCase()); }
 
 /* ────────────── LOGGING ────────────── */
@@ -221,15 +221,31 @@ function validateScriptVersion_(){
     if(!text.includes(VERSION))safeAlert_(`⚠️ Version mismatch.\nExpected: ${VERSION}`);
   }catch(e){Logger.log('validateScriptVersion_ error: '+e.message);}
 }
+
 /* ────────────── MENU & SECURITY ────────────── */
-/**
- * Executes when the spreadsheet is opened.
- * NOTE: UI and Security Code has been disabled due to Workspace security policies.
- * Admin must manually deploy new versions via clasp or the editor.
- */
-function onOpen() {
-  // This is a minimal, non-failing function that logs a successful open.
-  // The full menu logic is currently blocked by DriveApp/Protection scope permissions.
-  SpreadsheetApp.getActiveSpreadsheet().toast('Project Ready (Menu Blocked)', 'Breakroom Tracker', 5);
-  logEvent_('onOpen', 'Loaded (Menu Blocked)', VERSION);
+function onOpen(){
+  // UI MUST be instantiated here!
+  const ui = SpreadsheetApp.getUi();
+  
+  // 1. Build the menu
+  ui.createMenu('📊 Breakroom Tools') 
+    .addItem('🔁 Refresh Dashboard','buildDashboard')
+    .addSeparator()
+    .addItem('🩺 Run Full Audit','runFullAudit_')
+    .addItem('📂 Create Backup Now','createSheetBackup_')
+    .addItem('📜 Open Changelog','openChangelog_')
+    .addSeparator()
+    //.addItem('❄️ Freeze + Bundle','freezeAndBundle_') // DISABLED TO RESTORE MENU FUNCTIONALITY
+    .addItem('🧾 Validate Script Version','validateScriptVersion_')
+    .addToUi();
+  
+  // The high-risk sheet protection logic has been removed to restore menu functionality.
+
+  // 3. Run final validation and logging
+  validateScriptVersion_(); 
+  logEvent_('onOpen','Loaded',VERSION);
+}
+// ────────────── PUBLIC ENTRYPOINTS (for API Executable) ──────────────
+function runFullAudit() {
+  return runFullAudit_();
 }
