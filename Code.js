@@ -111,6 +111,12 @@ function systemHealth_(){
 
 /* ────────────── DASHBOARD ────────────── */
 function buildDashboard(){
+// 1. Build the menu
+  ui.createMenu('📊 Breakroom Tools') 
+    .addItem('🔁 Refresh Dashboard','buildDashboard')
+    .addItem('📈 Analyze Logs', 'analyzeLog_') // <--- ADD THIS LINE
+    .addSeparator()
+    .addItem('🩺 Run Full Audit','runFullAudit_')
   const dash = ss.getSheetByName(DASH_TAB); 
   dash.clearContents(); 
   dash.setColumnWidths(1,3,200);
