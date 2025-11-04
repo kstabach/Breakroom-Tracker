@@ -221,30 +221,15 @@ function validateScriptVersion_(){
     if(!text.includes(VERSION))safeAlert_(`⚠️ Version mismatch.\nExpected: ${VERSION}`);
   }catch(e){Logger.log('validateScriptVersion_ error: '+e.message);}
 }
-
 /* ────────────── MENU & SECURITY ────────────── */
-function onOpen(){
-  // UI MUST be instantiated here!
-  const ui = SpreadsheetApp.getUi();
-  
-  // 1. Build the menu
-  ui.createMenu('📊 Breakroom Tools') 
-    .addItem('🔁 Refresh Dashboard','buildDashboard')
-    .addSeparator()
-    .addItem('🩺 Run Full Audit','runFullAudit_')
-    .addItem('📂 Create Backup Now','createSheetBackup_')
-    .addItem('📜 Open Changelog','openChangelog_')
-    .addSeparator()
-    .addItem('❄️ Freeze + Bundle','freezeAndBundle_')
-    .addSeparator()
-    .addItem('🧾 Validate Script Version','validateScriptVersion_')
-    .addToUi();
-  
-  // 3. Run final validation and logging
-  validateScriptVersion_(); 
-  logEvent_('onOpen','Loaded',VERSION);
-}
-// ────────────── PUBLIC ENTRYPOINTS (for API Executable) ──────────────
-function runFullAudit() {
-  return runFullAudit_();
+/**
+ * Executes when the spreadsheet is opened.
+ * NOTE: UI and Security Code has been disabled due to Workspace security policies.
+ * Admin must manually deploy new versions via clasp or the editor.
+ */
+function onOpen() {
+  // This is a minimal, non-failing function that logs a successful open.
+  // The full menu logic is currently blocked by DriveApp/Protection scope permissions.
+  SpreadsheetApp.getActiveSpreadsheet().toast('Project Ready (Menu Blocked)', 'Breakroom Tracker', 5);
+  logEvent_('onOpen', 'Loaded (Menu Blocked)', VERSION);
 }
