@@ -173,6 +173,7 @@ function onOpen(){
   // 1. Build the menu
   ui.createMenu('📊 Breakroom Tools') 
     .addItem('🔁 Refresh Dashboard','buildDashboard')
+    .addItem('📈 Analyze Logs', 'analyzeLog_')
     .addSeparator()
     .addItem('🩺 Run Full Audit','runFullAudit_')
     .addItem('📜 Open Changelog','openChangelog_')
@@ -180,6 +181,60 @@ function onOpen(){
   
   logEvent_('onOpen','Loaded',VERSION);
 }
+
+/* ────────────── LOG ANALYTICS ────────────── */
+function analyzeLog_() {
+  const logSheet = ss.getSheetByName('Dev_Log');
+  if (!logSheet) {
+    safeAlert_("Log Sheet not found.");
+    return;
+  }
+  
+  // Create a new sheet for analytics summary
+  let summarySheet = ss.getSheetByName('Log_Summary');
+  if (!summarySheet) {
+    summarySheet = ss.insertSheet('Log_Summary');
+  }
+  summarySheet.clear();
+  
+  const data = logSheet.getDataRange().getValues();
+  if (data.length <= 1) {
+    summarySheet.appendRow(['Log is empty']);
+    return;
+  }
+
+  // Group log entries by level (column 3: INFO, WARN, ERROR)
+  const stats = data.slice(1).reduce((acc, row) => {
+    const level = row[2]; // Level is in the 3rd column (index 2)
+    if (level) {
+      acc[level] = (acc[level] || 0) + 1;
+    }
+    return acc;
+  }, {});
+  
+  // Format and output the summary
+  summarySheet.appendRow(['Log Analytics Summary']).setFontWeight('bold');
+  summarySheet.appendRow(['Timestamp', Utilities.formatDate(new Date(), Session.getScriptTimeZone(),'MM/dd/yy HH:mm:ss')]);
+  summarySheet.appendRow([]);
+  summarySheet.appendRow(['Level', 'Count', 'Percentage']).setFontWeight('bold').setBackground('#D1F2E4');
+
+  const total = data.length - 1;
+  
+  // Output stats for common levels
+  const output = [];
+  ['Success', 'Info', 'Warn', 'Error'].forEach(level => {
+    const count = stats[level] || 0;
+    const percent = total > 0 ? (count / total) : 0;
+    output.push([level, count, Utilities.formatNumber(percent, '0.0%')]);
+  });
+  
+  summarySheet.getRange(summarySheet.getLastRow() + 1, 1, output.length, 3).setValues(output);
+  summarySheet.setColumnWidth(1, 150).setColumnWidth(2, 80).setColumnWidth(3, 80);
+  
+  safeToast_('📈 Log Analytics Complete');
+  logEvent_('LogAnalytics', 'Success', 'Summary generated');
+}
+
 // ────────────── PUBLIC ENTRYPOINTS (for API Executable) ──────────────
 function runFullAudit() {
   return runFullAudit_();
