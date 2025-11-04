@@ -5,10 +5,6 @@
       "userSymbol": "Sheets",
       "serviceId": "sheets",
       "version": "v4"
-    }, {
-      "userSymbol": "Drive",
-      "serviceId": "drive",
-      "version": "v2"
     }]
   },
   "exceptionLogging": "STACKDRIVER",
