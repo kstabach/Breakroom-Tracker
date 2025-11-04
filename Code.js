@@ -64,7 +64,7 @@ function openChangelog_(){
 
 /* ────────────── DISABLED DRIVE FUNCTIONS ────────────── */
 // These functions are DISABLED because their use of DriveApp requires admin approval
-// and is blocking the menu. Save the full code in IDEAS.md for future use.
+// and is blocking the menu. The core dashboard functions are NOT disabled.
 /*
 function getOrCreateFolderByName_(name,parent){
   const it=parent?parent.getFoldersByName(name):DriveApp.getFoldersByName(name);
@@ -105,8 +105,8 @@ function systemHealth_(){
   const loc=ss.getSpreadsheetLocale()==='en_US';
   const t=ScriptApp.getProjectTriggers().some(x=>x.getHandlerFunction()==='buildDashboard');
   const ok=!!(log&&loc);
-  logEvent_('HealthCheck','Info','Backups: N/A (Drive Disabled)');
-  return {ok,autoRefreshOn:t,devLogExists:!!log,localeUS:loc,backups:'N/A'};
+  logEvent_('HealthCheck','Info','Backups: BLOCKED');
+  return {ok,autoRefreshOn:t,devLogExists:!!log,localeUS:loc,backups:'BLOCKED'};
 }
 
 /* ────────────── DASHBOARD ────────────── */
@@ -130,9 +130,9 @@ function buildDashboard(){
   ]);
   
   const audit=[]; 
-  audit.push('☑️ Drive: BLOCKED'); // New status
+  audit.push('☑️ Drive: BLOCKED'); // Status reflects permission block
   audit.push(health.ok ? '💻 System: OK' : '⚠️ System');
-  audit.push(`📦 Backup: BLOCKED`); // New status
+  audit.push('📦 Backup: BLOCKED'); // Status reflects permission block
 
   const allOK = audit.every(x=>x.includes('OK'));
   const color = '#FFF3CD'; // Set to Yellow/Warning because high-risk features are disabled
