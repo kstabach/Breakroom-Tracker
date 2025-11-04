@@ -180,7 +180,7 @@ function syncScriptToDoc_(){
   try{
     const code=getCurrentScriptSource_();
     if(!code||code.startsWith('⚠️')){logEvent_('syncScriptToDoc_','Warn','Source capture incomplete');safeAlert_('⚠️ Could not capture script text.');return;}
-    const folder=findOrCreateArchiveFolder_(); const name='Breakroom_Script_Master'; const existing=folder.getFilesByName(name);
+    const folder=findOrCreateArchiveFolder_(); const name='Breakroom_Script_Master'; const existing=folder.getFiles.getByName(name);
     let docFile;
     if(existing.hasNext()){docFile=existing.next();}
     else{
