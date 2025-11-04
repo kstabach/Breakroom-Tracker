@@ -1,0 +1,22 @@
+{
+  "name": "breakroom-tracker",
+  "version": "1.0.0",
+  "description": "**Version:** v1.7 Preview (Integrated Nov 2025)   **Last Sync:** Tracker Ideas vFinal | Apps Script v1.5.2 | Status: Live",
+  "main": "Code.js",
+"scripts": {
+  "deploy": "clasp push && git add . && git commit -m 'WIP: Deployment via npm' && git push origin master",
+  "test": "echo \"Error: no test specified\" && exit 1"
+},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kstabach/Breakroom-Tracker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/kstabach/Breakroom-Tracker/issues"
+  },
+  "homepage": "https://github.com/kstabach/Breakroom-Tracker#readme"
+}
