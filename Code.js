@@ -21,14 +21,13 @@ const BACKUP_PARENT_FOLDER_NAME = 'Breakroom_Tracker';
 const BACKUP_ARCHIVE_FOLDER_NAME = 'Archive';
 
 /* ────────────── UTILITIES ────────────── */
-// Global constants for performance: Open the spreadsheet and UI only ONCE.
+// Global constant for performance: Open the spreadsheet only once.
 const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-const ui = SpreadsheetApp.getUi();
 
 function props_(){ return PropertiesService.getDocumentProperties(); }
 function sprops_(){ return PropertiesService.getScriptProperties(); }
 function safeToast_(msg){ try{ SpreadsheetApp.getActive().toast(msg,'Breakroom Tracker',3);}catch(e){} }
-function safeAlert_(msg){ try{ ui.alert(msg);}catch(e){} }
+function safeAlert_(msg){ try{ SpreadsheetApp.getUi().alert(msg);}catch(e){} } // UI is called here directly
 function isAdmin_(){ return ADMIN_EMAILS.includes((Session.getActiveUser().getEmail()||'').toLowerCase()); }
 
 /* ────────────── LOGGING ────────────── */
@@ -164,7 +163,7 @@ function runFullAudit_(){
     const h=systemHealth_(); r.push(h.ok?'💻 System: OK':`⚠️ ${h.devLogExists?'Log OK':'Log Missing'}`);
     try{createSheetBackup_();r.push('📦 Backup OK');}catch(e){r.push('⚠️ Backup');}
     ensureChangelog_(); logEvent_('runFullAudit','Success',r.join(' | ')); safeToast_('🩺 Full Audit Complete');
-  }catch(e){logEvent_('runFullAudit','Error',e.message);safeAlert_('Audit failed: '+e.message);}
+  }catch(e){safeAlert_('Audit failed: '+e.message); logEvent_('runFullAudit','Error',e.message);}
 }
 
 /* ────────────── SYNC DOC ────────────── */
@@ -192,7 +191,7 @@ function syncScriptToDoc_(){
     const doc=DocumentApp.openById(docFile.getId());
     doc.getBody().setText(`Breakroom Tracker Script – ${VERSION} (${new Date()})\n──────────────────────────────\n\n${code}`);
     doc.saveAndClose(); safeToast_('✅ Script synced to Drive');
-  }catch(e){logEvent_('syncScriptToDoc_','Error',e.message);safeAlert_('❌ Sync failed: '+e.message);}
+  }catch(e){safeAlert_('❌ Sync failed: '+e.message); logEvent_('syncScriptToDoc_','Error',e.message);}
 }
 
 /* ────────────── FREEZE & BUNDLE ────────────── */
@@ -210,7 +209,7 @@ function freezeAndBundle_(){
     const folder=findOrCreateArchiveFolder_(); folder.createFile(blob); res.push('🗜 ZIP');
     runFullAudit_(); res.push('🩺 Audit'); syncScriptToDoc_(); res.push('🧾 Script Sync');
     const sum=res.join(' | '); logEvent_('freezeAndBundle_','Success',sum); safeToast_(`✅ Freeze complete: ${sum}`);
-  }catch(e){logEvent_('freezeAndBundle_','Error',e.message);safeAlert_('❌ Freeze failed: '+e.message);}
+  }catch(e){safeAlert_('❌ Freeze failed: '+e.message); logEvent_('freezeAndBundle_','Error',e.message);}
 }
 
 /* ────────────── VERSION VALIDATION ────────────── */
@@ -225,9 +224,11 @@ function validateScriptVersion_(){
 
 /* ────────────── MENU & SECURITY ────────────── */
 function onOpen(){
+  // UI MUST be instantiated here!
+  const ui = SpreadsheetApp.getUi();
   
   // 1. Build the menu
-  ui.createMenu('📊 Breakroom Tools') // Uses global 'ui'
+  ui.createMenu('📊 Breakroom Tools') 
     .addItem('🔁 Refresh Dashboard','buildDashboard')
     .addSeparator()
     .addItem('🩺 Run Full Audit','runFullAudit_')
@@ -276,7 +277,6 @@ function onOpen(){
     logEvent_('onOpen_Security', 'Success', 'Sheet protections updated');
 
   } catch (e) {
-    // THIS IS THE FIX. The 'E' is gone and the quotes are correct.
     logEvent_('onOpen_Security', 'Error', e.message);
   }
 
