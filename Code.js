@@ -240,46 +240,6 @@ function onOpen(){
     .addItem('🧾 Validate Script Version','validateScriptVersion_')
     .addToUi();
   
-  // 2. Apply Sheet Protections
-  try {
-    const allSheets = ss.getSheets(); // Uses global 'ss'
-    const currentUser = Session.getActiveUser().getEmail();
-    
-    // These are the tabs that NON-ADMINS *can* edit.
-    // We will leave the main data tab open.
-    const userEditableTabs = [TRACKER_TAB]; 
-
-    allSheets.forEach(sheet => {
-      const sheetName = sheet.getName();
-      
-      // Check if this is a system tab (i.e., NOT a user-editable tab)
-      if (userEditableTabs.indexOf(sheetName) === -1) {
-        const protection = sheet.getProtection(SpreadsheetApp.ProtectionType.SHEET);
-        
-        // Add all admins as editors
-        protection.addEditors(ADMIN_EMAILS);
-        
-        // Ensure domain editing is off
-        if (protection.canDomainEdit()) {
-          protection.setDomainEdit(false);
-        }
-        
-        // If the current user is NOT an admin, remove them from this tab
-        if (!isAdmin_()) {
-          protection.removeEditor(currentUser);
-        }
-        
-        protection.setDescription(`Admin-Only Tab (${sheetName})`);
-        protection.setWarningOnly(false); // Use hard protection
-      }
-    });
-    
-    logEvent_('onOpen_Security', 'Success', 'Sheet protections updated');
-
-  } catch (e) {
-    logEvent_('onOpen_Security', 'Error', e.message);
-  }
-
   // 3. Run final validation and logging
   validateScriptVersion_(); 
   logEvent_('onOpen','Loaded',VERSION);
