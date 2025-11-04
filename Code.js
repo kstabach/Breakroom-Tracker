@@ -276,6 +276,7 @@ function onOpen(){
     logEvent_('onOpen_Security', 'Success', 'Sheet protections updated');
 
   } catch (e) {
+    // THIS IS THE FIX. The 'E' is gone and the quotes are correct.
     logEvent_('onOpen_Security', 'Error', e.message);
   }
 
