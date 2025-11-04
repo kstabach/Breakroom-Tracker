@@ -141,13 +141,12 @@ function getDropdownData() {
   const listsSheet = ss.getSheetByName(LISTS_TAB);
   if (!listsSheet) throw new Error("Lists sheet is missing.");
   
-  // FIX: Status List is in Column H. Agency List is in Column Q.
-  const agencies = listsSheet.getRange('Q2:Q' + listsSheet.getLastRow()).getValues().flat().filter(String);
-  const statuses = listsSheet.getRange('H2:H' + listsSheet.getLastRow()).getValues().flat().filter(String);
+  // FIX: Status List is in Column I. Agency List is in Column P.
+  const agencies = listsSheet.getRange('P2:P' + listsSheet.getLastRow()).getValues().flat().filter(String);
+  const statuses = listsSheet.getRange('I2:I' + listsSheet.getLastRow()).getValues().flat().filter(String);
 
   return { agencies: agencies, statuses: statuses };
 }
-
 /* ────────────── LOG ANALYTICS ────────────── */
 // Feature: Log Analytics (Task 1)
 function analyzeLog_() {
