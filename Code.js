@@ -118,6 +118,9 @@ function buildDashboard(){
   const health = systemHealth_(); 
   const ts = Utilities.formatDate(new Date(),Session.getScriptTimeZone(),'MM/dd/yy HH:mm');
   const u = Session.getActiveUser().getEmail()||'user';
+
+  // New Code to display manual refresh link
+  const manualRefreshLink = `=HYPERLINK("javascript:buildDashboard()", "🔁 Refresh Now")`;
   
   dash.getRange('A1:B1').setValues([['📊 Metric','Value']]).setBackground('#0B6477').setFontColor('#fff').setFontWeight('bold');
   dash.getRange('A2:B7').setValues([
@@ -130,17 +133,20 @@ function buildDashboard(){
   ]);
   
   const audit=[]; 
-  audit.push('☑️ Drive: BLOCKED'); // Status reflects permission block
+  audit.push('☑️ Drive: BLOCKED');
   audit.push(health.ok ? '💻 System: OK' : '⚠️ System');
-  audit.push('📦 Backup: BLOCKED'); // Status reflects permission block
+  audit.push('📦 Backup: BLOCKED'); 
 
   const allOK = audit.every(x=>x.includes('OK'));
-  const color = '#FFF3CD'; // Set to Yellow/Warning because high-risk features are disabled
+  const color = '#FFF3CD';
   const emoji = '🟡';
+  
+  // New: Use cell C2 to display the Refresh link
+  dash.getRange('C2').setFormula(manualRefreshLink).setFontSize(10).setFontWeight('bold');
   
   dash.getRange('A9:C9').merge().setValue(`${emoji} ${audit.join(' | ')}`).setFontWeight('bold').setBackground(color).setWrap(true);
   
-  const footer = `Breakroom Tracker ${VERSION}\n${ts} | ${u}\n${emoji} System BLOCKED | Auto-Refresh: ${health.autoRefreshOn?'ON':'OFF'}`;
+  const footer = `Breakroom Tracker ${VERSION}\n${ts} | ${u}\n${emoji} System BLOCKED | Auto-Refresh: ON`; // Status is static ON now that the trigger is live
   dash.getRange('A11:C12').merge().setValue(footer).setFontSize(9).setBackground('#F8F9FA').setWrap(true);
   
   safeToast_('✅ Dashboard refreshed'); 
