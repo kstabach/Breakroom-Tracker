@@ -138,7 +138,7 @@ function buildDashboard(){
 }
 
 /* ────────────── LOG ANALYTICS ────────────── */
-// Feature: Log Analytics (Task 1)
+// Feature: Log Analytics (Task 1) - FIXED FONTWEIGHT ERROR
 function analyzeLog_() {
   const logSheet = ss.getSheetByName('Dev_Log');
   if (!logSheet) {
@@ -166,10 +166,16 @@ function analyzeLog_() {
     return acc;
   }, {});
   
-  summarySheet.appendRow(['Log Analytics Summary']).setFontWeight('bold');
+  // FIX 1: Split appendRow and setFontWeight
+  summarySheet.appendRow(['Log Analytics Summary']);
+  summarySheet.getRange(summarySheet.getLastRow(), 1).setFontWeight('bold'); 
+
   summarySheet.appendRow(['Timestamp', Utilities.formatDate(new Date(), Session.getScriptTimeZone(),'MM/dd/yy HH:mm:ss')]);
   summarySheet.appendRow([]);
-  summarySheet.appendRow(['Level', 'Count', 'Percentage']).setFontWeight('bold').setBackground('#D1F2E4');
+  
+  // FIX 2: Split appendRow and setFontWeight/setBackground
+  summarySheet.appendRow(['Level', 'Count', 'Percentage']);
+  summarySheet.getRange(summarySheet.getLastRow(), 1, 1, 3).setFontWeight('bold').setBackground('#D1F2E4');
 
   const total = data.length - 1;
   const output = [];
