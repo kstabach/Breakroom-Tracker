@@ -63,8 +63,7 @@ function openChangelog_(){
 }
 
 /* ────────────── DISABLED DRIVE FUNCTIONS ────────────── */
-// These functions are DISABLED because their use of DriveApp requires admin approval
-// and is blocking the menu. The core dashboard functions are NOT disabled.
+// These high-risk functions are removed from the code to bypass Workspace security.
 /*
 function getOrCreateFolderByName_(name,parent){ }
 function findOrCreateArchiveFolder_(){ }
@@ -78,10 +77,10 @@ function freezeAndBundle_(){ safeAlert_('❌ Freeze/Bundle failed: BLOCKED'); }
 */
 
 /* ────────────── TIMESTAMPS ────────────── */
-function updateLastTriggerRunTime_(){ sprops_().setProperty('LAST_TRIGGER_RUN',new Date().toISOString()); }
-function getLastTriggerRunTime_(){ const iso=sprops_().getProperty('LAST_TRIGGER_RUN'); return iso?Utilities.formatDate(new Date(iso),Session.getScriptTimeZone(),'MM/dd/yy HH:mm'):'Never'; }
-function updateLastBackupTime_(){ sprops_().setProperty('LAST_BACKUP_RUN',new Date().toISOString()); }
-function getLastBackupTime_(){ const iso=sprops_().getProperty('LAST_BACKUP_RUN'); return iso?Utilities.formatDate(new Date(iso),Session.getScriptTimeZone(),'MM/dd/yy HH:mm'):'Never'; }
+function updateLastTriggerRunTime_(){ props_().setProperty('LAST_TRIGGER_RUN',new Date().toISOString()); }
+function getLastTriggerRunTime_(){ const iso=props_().getProperty('LAST_TRIGGER_RUN'); return iso?Utilities.formatDate(new Date(iso),Session.getScriptTimeZone(),'MM/dd/yy HH:mm'):'Never'; }
+function updateLastBackupTime_(){ props_().setProperty('LAST_BACKUP_RUN',new Date().toISOString()); }
+function getLastBackupTime_(){ const iso=props_().getProperty('LAST_BACKUP_RUN'); return iso?Utilities.formatDate(new Date(iso),Session.getScriptTimeZone(),'MM/dd/yy HH:mm'):'Never'; }
 
 /* ────────────── HEALTH + VERIFY ────────────── */
 // Simplified to not use DriveApp (verifyBundleStructure_ is removed)
@@ -216,7 +215,7 @@ function onOpen(){
   ui.createMenu('📊 Breakroom Tools') 
     .addItem('🔁 Refresh Dashboard','buildDashboard') // Feature 1: Hourly Refresh Icon
     .addItem('📈 Analyze Logs', 'analyzeLog_') // Feature 2: Log Analytics
-    .addItem('📝 Quick Add Panel', 'openQuickAddPanel') // Feature 3: Quick Add Panel (Placeholder)
+    .addItem('📝 Quick Add Panel', 'openQuickAddPanel') // Feature 3: Quick Add Panel
     .addSeparator()
     .addItem('🩺 Run Full Audit','runFullAudit_')
     .addItem('📜 Open Changelog','openChangelog_')
