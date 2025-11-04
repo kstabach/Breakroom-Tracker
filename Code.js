@@ -1,5 +1,5 @@
 // ───────────────────────────────────────────────
-//  Breakroom Tracker – Apps Script  (v1.5.3 Stable Freeze + Menu Restore)
+//  Breakroom Tracker – Apps Script  (v1.5.3 STABLE MENU BUILD)
 //  Owner: kenneth.stabach@ziprecruiter.com
 //  Last Updated: 11/03/2025
 // ───────────────────────────────────────────────
@@ -195,7 +195,7 @@ function syncScriptToDoc_(){
 
 /* ────────────── FREEZE & BUNDLE ────────────── */
 function freezeAndBundle_(){
-  // NOTE: This function is still high-risk for permissions and is NOT in the onOpen() menu.
+  // NOTE: This high-risk function is kept in the codebase but removed from the menu.
   const start=new Date(); const v=VERSION; const ts=Utilities.formatDate(start,Session.getScriptTimeZone(),'MM/dd/yy HH:mm');
   const user=Session.getActiveUser().getEmail()||'user'; const res=[];
   try{
@@ -237,8 +237,6 @@ function onOpen(){
     .addSeparator()
     .addItem('🧾 Validate Script Version','validateScriptVersion_')
     .addToUi();
-  
-  // NOTE: Sheet protection logic removed as it blocks onOpen() execution.
   
   // 3. Run final validation and logging
   validateScriptVersion_(); 
