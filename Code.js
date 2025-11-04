@@ -136,6 +136,17 @@ function buildDashboard(){
   safeToast_('✅ Dashboard refreshed'); 
   logEvent_('buildDashboard','Success','Dashboard rendered');
 }
+/* ────────────── QUICK ADD PANEL LOGIC ────────────── */
+function getDropdownData() {
+  const listsSheet = ss.getSheetByName(LISTS_TAB);
+  if (!listsSheet) throw new Error("Lists sheet is missing.");
+  
+  // FIX: Status List is in Column H. Agency List is in Column Q.
+  const agencies = listsSheet.getRange('Q2:Q' + listsSheet.getLastRow()).getValues().flat().filter(String);
+  const statuses = listsSheet.getRange('H2:H' + listsSheet.getLastRow()).getValues().flat().filter(String);
+
+  return { agencies: agencies, statuses: statuses };
+}
 
 /* ────────────── LOG ANALYTICS ────────────── */
 // Feature: Log Analytics (Task 1)
