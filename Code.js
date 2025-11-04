@@ -63,7 +63,8 @@ function openChangelog_(){
 }
 
 /* ────────────── DISABLED DRIVE FUNCTIONS ────────────── */
-// These high-risk functions are removed from the code to bypass Workspace security.
+// These functions are DISABLED because their use of DriveApp requires admin approval
+// and is blocking the menu. The core dashboard functions are NOT disabled.
 /*
 function getOrCreateFolderByName_(name,parent){ }
 function findOrCreateArchiveFolder_(){ }
@@ -83,7 +84,7 @@ function updateLastBackupTime_(){ sprops_().setProperty('LAST_BACKUP_RUN',new Da
 function getLastBackupTime_(){ const iso=sprops_().getProperty('LAST_BACKUP_RUN'); return iso?Utilities.formatDate(new Date(iso),Session.getScriptTimeZone(),'MM/dd/yy HH:mm'):'Never'; }
 
 /* ────────────── HEALTH + VERIFY ────────────── */
-// Simplified to remove DriveApp calls.
+// Simplified to not use DriveApp (verifyBundleStructure_ is removed)
 function systemHealth_(){
   const log=ss.getSheetByName('Dev_Log');
   const loc=ss.getSpreadsheetLocale()==='en_US';
@@ -117,12 +118,12 @@ function buildDashboard(){
   ]);
   
   const audit=[]; 
-  audit.push('☑️ Drive: BLOCKED');
+  audit.push('☑️ Drive: BLOCKED'); // Status reflects permission block
   audit.push(health.ok ? '💻 System: OK' : '⚠️ System');
-  audit.push('📦 Backup: BLOCKED'); 
+  audit.push('📦 Backup: BLOCKED'); // Status reflects permission block
 
   const allOK = audit.every(x=>x.includes('OK'));
-  const color = '#FFF3CD'; // Yellow/Warning Status
+  const color = '#FFF3CD'; // Set to Yellow/Warning status
   const emoji = '🟡';
   
   // Display Refresh Link
@@ -213,9 +214,9 @@ function onOpen(){
   
   // 1. Build the menu
   ui.createMenu('📊 Breakroom Tools') 
-    .addItem('🔁 Refresh Dashboard','buildDashboard')
-    .addItem('📈 Analyze Logs', 'analyzeLog_') // Feature: Log Analytics
-    .addItem('📝 Quick Add Panel', 'openQuickAddPanel') // Feature: Quick Add Panel
+    .addItem('🔁 Refresh Dashboard','buildDashboard') // Feature 1: Hourly Refresh Icon
+    .addItem('📈 Analyze Logs', 'analyzeLog_') // Feature 2: Log Analytics
+    .addItem('📝 Quick Add Panel', 'openQuickAddPanel') // Feature 3: Quick Add Panel (Placeholder)
     .addSeparator()
     .addItem('🩺 Run Full Audit','runFullAudit_')
     .addItem('📜 Open Changelog','openChangelog_')
